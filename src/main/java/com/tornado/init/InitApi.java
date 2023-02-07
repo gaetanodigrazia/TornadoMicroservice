@@ -118,6 +118,7 @@ public class InitApi {
 	public void initServiceImpl(Class<?> beanClass) throws IOException {
 		this.printServiceImpl(this.createPackage(ComponentType.ServiceImpl), beanClass.getSimpleName(),
 				beanClass.getSimpleName() + ComponentType.ServiceImpl, beanClass);
+		
 	}
 
 	public List<String> initServiceImplAPI(Class<?> beanClass) throws IOException {
@@ -125,7 +126,7 @@ public class InitApi {
 				beanClass.getSimpleName() + ComponentType.ServiceImpl, beanClass);
 	}
 	
-	public void printControllerAdvice(String packageName, String beanName, String className) throws IOException {
+	public List<String> printControllerAdvice(String packageName, String beanName, String className) throws IOException {
 		List<String> toWrite = new ArrayList<String>();
 		toWrite.add(getLicence());
 		toWrite.add("package " + packageName.replace("src/main/java/", "").replace("/", ".") + ";\n");
@@ -148,6 +149,7 @@ public class InitApi {
 		toWrite.add("}");
 		toWrite.add("}");
 		serialize.appendStringFromList(packageName, className, toWrite);
+		return toWrite;
 	}
 
 	public List<String> printControllerAdviceAPI(String packageName, String beanName, String className) throws IOException {
@@ -175,7 +177,7 @@ public class InitApi {
 		return toWrite;
 	}
 
-	public void printController(String packageName, String beanName, String className) throws IOException {
+	public List<String> printController(String packageName, String beanName, String className) throws IOException {
 		List<String> toWrite = new ArrayList<String>();
 		char quotes = '"';
 		toWrite.add(getLicence());
@@ -262,6 +264,7 @@ public class InitApi {
 		toWrite.add("}");
 		toWrite.add("}");
 		serialize.appendStringFromList(packageName, className.replace("Controller", "RestController"), toWrite);
+		return toWrite;
 	}
 
 	public List<String> printControllerAPI(String packageName, String beanName, String className) throws IOException {
@@ -353,7 +356,7 @@ public class InitApi {
 		return toWrite;
 	}
 
-	public void printRepositoryClass(String packageName, String beanName, String className) throws IOException {
+	public List<String> printRepositoryClass(String packageName, String beanName, String className) throws IOException {
 		List<String> toWrite = new ArrayList<String>();
 		toWrite.add(getLicence());
 
@@ -365,6 +368,7 @@ public class InitApi {
 		toWrite.add("");
 		toWrite.add("}");
 		serialize.appendStringFromList(packageName, className, toWrite);
+		return toWrite;
 	}
 
 	public List<String> printRepositoryClassAPI(String packageName, String beanName, String className) throws IOException {
@@ -381,7 +385,7 @@ public class InitApi {
 		return toWrite;
 	}
 
-	public void printExceptionClass(String packageName, String beanName,String className) throws IOException {
+	public List<String> printExceptionClass(String packageName, String beanName,String className) throws IOException {
 		List<String> toWrite = new ArrayList<String>();
 		toWrite.add(getLicence());
 
@@ -392,6 +396,7 @@ public class InitApi {
 		toWrite.add("}\n");
 		toWrite.add("}\n");
 		serialize.appendStringFromList(packageName, beanName+"NotFoundException", toWrite);
+		return toWrite;
 	}
 
 	public List<String> printExceptionClassAPI(String packageName, String beanName,String className) throws IOException {
@@ -408,7 +413,7 @@ public class InitApi {
 	}
 
 	
-	public void printDatabase(String packageName, String beanName, String className) throws IOException {
+	public List<String> printDatabase(String packageName, String beanName, String className) throws IOException {
 		List<String> toWrite = new ArrayList<String>();
 		toWrite.add(getLicence());
 
@@ -436,6 +441,7 @@ public class InitApi {
 		toWrite.add("};");
 		toWrite.add("}");
 		serialize.appendStringFromList(packageName, className, toWrite);
+		return toWrite;
 	}
 
 	public List<String> printDatabaseAPI(String packageName, String beanName, String className) throws IOException {
@@ -468,7 +474,7 @@ public class InitApi {
 		return toWrite;
 	}
 
-	public void printService(String packageName, String beanName, String className, Class<?> clazz) throws IOException {
+	public List<String> printService(String packageName, String beanName, String className, Class<?> clazz) throws IOException {
 		List<String> toWrite = new ArrayList<String>();
 		toWrite.add(getLicence());
 		toWrite.add("package " + packageName.replace("src/main/java/", "").replace("/", ".") + ";\n");
@@ -492,6 +498,7 @@ public class InitApi {
 		}
 		toWrite.add("}");
 		serialize.appendStringFromList(packageName, className, toWrite);
+		return toWrite;
 	}
 	
 	public List<String> printServiceAPI(String packageName, String beanName, String className, Class<?> clazz) throws IOException {
@@ -520,7 +527,7 @@ public class InitApi {
 		return toWrite;
 	}
 
-	public void printServiceImpl(String packageName, String beanName, String className, Class<?> clazz) throws IOException {
+	public List<String> printServiceImpl(String packageName, String beanName, String className, Class<?> clazz) throws IOException {
 		List<String> toWrite = new ArrayList<String>();
 		toWrite.add(getLicence());
 
@@ -581,6 +588,7 @@ public class InitApi {
 								toWrite.add("}");
 
 		serialize.appendStringFromList(packageName, className, toWrite);
+		return toWrite;
 	}
 
 	public List<String> printServiceImplAPI(String packageName, String beanName, String className, Class<?> clazz) throws IOException {
@@ -646,7 +654,7 @@ public class InitApi {
 		return toWrite;
 	}
 
-	public void printFilter(String packageName, String beanName, String className) throws IOException {
+	public List<String> printFilter(String packageName, String beanName, String className) throws IOException {
 		List<String> toWrite = new ArrayList<String>();
 		toWrite.add(getLicence());
 		
@@ -666,7 +674,7 @@ public class InitApi {
 				toWrite.add("}");
 	toWrite.add("}");
 		serialize.appendStringFromList(packageName, className, toWrite);
-
+		return toWrite;
 	}
 	
 	public List<String> printFilterAPI(String packageName, String beanName, String className) throws IOException {

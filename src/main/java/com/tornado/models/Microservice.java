@@ -4,7 +4,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class Microservice {
-	private Keycloak keycloak;
+	  private Keycloak keycloak;
 	  private MySql mysql;
 	  private PostgreSql postgresql;
 	  private MongoDb mongodb;
@@ -19,7 +19,10 @@ public class Microservice {
 	    this.mysql = builder.mysql;
 	    this.postgresql = builder.postgresql;
 	    this.mongodb = builder.mongodb;
-	    
+	    this.restController = builder.restController;
+	    this.serviceInterface = builder.serviceInterface;
+	    this.serviceImplementation = builder.serviceImplementation;
+	    this.repository = builder.repository;
 	  }
 
 	  public static Builder builder() {

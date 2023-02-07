@@ -11,11 +11,11 @@
 */
 package com.tornado.helper.file;
 
+import com.tornado.models.Microservice;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
-
 import org.springframework.stereotype.Component;
 
 import com.tornado.custom.StringUtils;
@@ -172,5 +172,8 @@ public class Serialize {
 		}
 	}
 	
+	public void serializeMicroservice(Microservice microservice) {
+		
+	}
 
 }
