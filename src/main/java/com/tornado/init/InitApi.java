@@ -202,8 +202,10 @@ public class InitApi {
 
 		toWrite.add("package " + packageName.replace("src/main/java/", "").replace("/", ".") + ";\n");
 		toWrite.add("import org.springframework.data.jpa.repository.JpaRepository;");
+		toWrite.add("import org.springframework.stereotype.Repository;");
 		toWrite.add("import " + packageName.replace("src/main/java/", "").replace("/", ".").replace("repository", "beans")
 				+"."+beanName+";");
+		toWrite.add("@Repository");
 		toWrite.add("public interface " + beanName + "Repository<T> extends JpaRepository<" + beanName + ", T> {");
 		toWrite.add("");
 		toWrite.add("}");
