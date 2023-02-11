@@ -15,12 +15,10 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
-import org.springframework.stereotype.Component;
 
 import com.tornado.custom.StringUtils;
-import com.tornado.models.Microservice;
 
-@Component
+
 public class Serialize {
 
 	/**
@@ -172,8 +170,5 @@ public class Serialize {
 		}
 	}
 	
-	public void serializeMicroservice(Microservice microservice) {
-		
-	}
 
 }
