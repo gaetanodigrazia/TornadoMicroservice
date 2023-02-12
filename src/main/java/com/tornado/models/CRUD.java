@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class CRUD {
-	private String stringPackage;
+	private String basePackage;
 	private Class<?> restController;
 	private Class<?> serviceInterface;
 	private Class<?> serviceImplementation;
@@ -18,7 +18,7 @@ public class CRUD {
 
 
 	public CRUD(CRUDBuilder crudBuilder) {
-		this.stringPackage = crudBuilder.stringPackage;
+		this.basePackage = crudBuilder.basePackage;
 		this.restController = crudBuilder.restController;
 		this.serviceInterface = crudBuilder.serviceInterface;
 		this.serviceImplementation = crudBuilder.serviceImplementation;
@@ -31,8 +31,8 @@ public class CRUD {
 	/**
 	 * @return the stringPackage
 	 */
-	public String getStringPackage() {
-		return stringPackage;
+	public String getBasePackage() {
+		return basePackage;
 	}
 
 	/**
@@ -67,7 +67,7 @@ public class CRUD {
 	}
 
 	public static class CRUDBuilder {
-		private String stringPackage;
+		private String basePackage;
 		private Class<?> restController;
 		private Class<?> serviceInterface;
 		private Class<?> serviceImplementation;
@@ -80,8 +80,8 @@ public class CRUD {
 
 		}
 		
-		public CRUDBuilder withStringPackage(String stringPackage) {
-			this.stringPackage= stringPackage;
+		public CRUDBuilder withBasePackage(String basePackage) {
+			this.basePackage= basePackage;
 			return this;
 		}
 		
@@ -115,7 +115,7 @@ public class CRUD {
 		}
 		public CRUD build() throws IOException {
 			InitApi initApi = new InitApi();
-			initApi.setStringRootPackage(this.stringPackage); 
+			initApi.setStringRootPackage(this.basePackage); 
 			initApi.initCrud(this.controllerAdvice);
 			return new CRUD(this);
 		}
