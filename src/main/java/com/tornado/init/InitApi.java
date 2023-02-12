@@ -158,24 +158,24 @@ public class InitApi {
 		toWrite.add(beanName + "RestController() {");
 		toWrite.add("}");
 
-		toWrite.add("@GetMapping(" + quotes + "/" + beanName.toLowerCase() + "" + quotes + ")");
+		toWrite.add("@GetMapping");
 		toWrite.add("List<" + beanName + "> all() {");
 		toWrite.add("return repository.findAll();");
 		toWrite.add("}");
 
-		toWrite.add("@PostMapping(" + quotes + "/" + beanName.toLowerCase() + "" + quotes + ")");
+		toWrite.add("@PostMapping");
 		toWrite.add(beanName + " newEmployee(@RequestBody " + beanName + " new" + beanName + ") {");
 		toWrite.add("return (" + beanName + ") repository.save(new" + beanName + ");");
 		toWrite.add("}");
 
-		toWrite.add("@GetMapping(" + quotes + "/" + beanName.toLowerCase() + "/{id}" + quotes + ")");
+		toWrite.add("@GetMapping(" + "/{id}" + quotes + ")");
 		toWrite.add(beanName + " get" + beanName + "(@PathVariable Long id) throws Throwable {");
 
 		toWrite.add("return (" + beanName + ") repository.findById(id)");
 		toWrite.add(".orElseThrow(() -> new " + beanName + "NotFoundException(id));");
 		toWrite.add("}");
 
-		toWrite.add("@PutMapping(" + quotes + "/" + beanName.toLowerCase() + "/{id}" + quotes + ")");
+		toWrite.add("@PutMapping(" + "/{id}" + quotes + ")");
 		toWrite.add(beanName + " replace" + beanName + "(@RequestBody " + beanName + " new" + beanName
 				+ ", @PathVariable Long id) {");
 
@@ -190,7 +190,7 @@ public class InitApi {
 		toWrite.add("});");
 		toWrite.add("}");
 
-		toWrite.add("@DeleteMapping(" + quotes + "/" + beanName.toLowerCase() + "/{id}" + quotes + ")");
+		toWrite.add("@DeleteMapping(" + "/{id}" + quotes + ")");
 		toWrite.add("void delete" + beanName + "(@PathVariable Long id) {");
 		toWrite.add("repository.deleteById(id);");
 		toWrite.add("}");
