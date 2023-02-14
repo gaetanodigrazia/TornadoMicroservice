@@ -14,6 +14,7 @@ public class CRUD {
 	private Class<?> filter;
 	private Class<?> exceptions;
 	private Class<?> controllerAdvice;
+	private Documentation documentation;
 
 
 
@@ -26,6 +27,7 @@ public class CRUD {
 		this.filter = crudBuilder.filter;
 		this.exceptions = crudBuilder.exceptions;
 		this.controllerAdvice = crudBuilder.controllerAdvice;
+		this.documentation = crudBuilder.documentation;
 	}
 
 	/**
@@ -66,6 +68,13 @@ public class CRUD {
 		return controllerAdvice;
 	}
 
+	/**
+	 * @return the documentation
+	 */
+	public Documentation getDocumentation() {
+		return documentation;
+	}
+
 	public static class CRUDBuilder {
 		private String basePackage;
 		private Class<?> restController;
@@ -75,6 +84,7 @@ public class CRUD {
 		private Class<?> filter;
 		private Class<?> exceptions;
 		private Class<?> controllerAdvice;
+		private Documentation documentation;
 
 		public CRUDBuilder() {
 
@@ -113,10 +123,14 @@ public class CRUD {
 			this.exceptions= beanClass;
 			return this;
 		}
+		public CRUDBuilder withApiDocumentation(Documentation documentationConfig) {
+			this.documentation = documentationConfig;
+			return this;
+		}
 		public CRUD build() throws IOException {
 			InitApi initApi = new InitApi();
 			initApi.setStringRootPackage(this.basePackage); 
-			initApi.initCrud(this.controllerAdvice);
+			initApi.initCrud(this.controllerAdvice, this.documentation);
 			return new CRUD(this);
 		}
 	}

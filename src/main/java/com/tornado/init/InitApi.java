@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.databind.ser.std.ArraySerializerBase;
 import com.tornado.custom.StringUtils;
 import com.tornado.helper.file.Serialize;
+import com.tornado.models.Documentation;
 import com.tornado.models.enumerations.ComponentType;
 
 @Component
@@ -37,7 +38,7 @@ public class InitApi {
 
 	}
 
-	public void initCrud(Class<?> beanClass) throws IOException {
+	public void initCrud(Class<?> beanClass, Documentation documentationConfig) throws IOException {
 		this.initService(beanClass);
 		this.initServiceImpl(beanClass);
 		this.initFilter(beanClass);
@@ -45,6 +46,7 @@ public class InitApi {
 		this.initControllerAdvice(beanClass);
 		this.initRepository(beanClass);
 		this.initExceptions(beanClass);
+		this.initDocumentation(beanClass, documentationConfig);
 //		this.initDatabase(beanClass);
 	}
 
@@ -87,6 +89,10 @@ public class InitApi {
 	public void initServiceImpl(Class<?> beanClass) throws IOException {
 		this.printServiceImpl(this.createPackage(ComponentType.ServiceImpl), beanClass.getSimpleName(),
 				beanClass.getSimpleName() + ComponentType.ServiceImpl, beanClass);
+	}
+
+	public void initDocumentation(Class<?> beanClass, Documentation documentationConfig) throws IOException {
+		this.printDocumentation(this.createPackage(ComponentType.Configuration), beanClass.getSimpleName(), beanClass, documentationConfig);
 	}
 
 	public void printControllerAdvice(String packageName, String beanName, String className) throws IOException {
@@ -168,14 +174,14 @@ public class InitApi {
 		toWrite.add("return (" + beanName + ") repository.save(new" + beanName + ");");
 		toWrite.add("}");
 
-		toWrite.add("@GetMapping(" + "/{id}" + quotes + ")");
+		toWrite.add("@GetMapping(" + quotes + "/{id}" + quotes + ")");
 		toWrite.add(beanName + " get" + beanName + "(@PathVariable Long id) throws Throwable {");
 
 		toWrite.add("return (" + beanName + ") repository.findById(id)");
 		toWrite.add(".orElseThrow(() -> new " + beanName + "NotFoundException(id));");
 		toWrite.add("}");
 
-		toWrite.add("@PutMapping(" + "/{id}" + quotes + ")");
+		toWrite.add("@PutMapping(" + quotes + "/{id}" + quotes + ")");
 		toWrite.add(beanName + " replace" + beanName + "(@RequestBody " + beanName + " new" + beanName
 				+ ", @PathVariable Long id) {");
 
@@ -190,7 +196,7 @@ public class InitApi {
 		toWrite.add("});");
 		toWrite.add("}");
 
-		toWrite.add("@DeleteMapping(" + "/{id}" + quotes + ")");
+		toWrite.add("@DeleteMapping(" + quotes + "/{id}" + quotes + ")");
 		toWrite.add("void delete" + beanName + "(@PathVariable Long id) {");
 		toWrite.add("repository.deleteById(id);");
 		toWrite.add("}");
@@ -406,6 +412,53 @@ public class InitApi {
 		toWrite.add("}");
 		toWrite.add("}");
 		serialize.appendStringFromList(packageName, className, toWrite);
+
+	}
+
+	public void printDocumentation(String packageName, String beanName, Class<?> clazz, Documentation documentation) throws IOException {
+		List<String> toWrite = new ArrayList<String>();
+		char quotes = '"';
+		toWrite.add("package " + packageName.replace("src/main/java/", "").replace("/", ".") + ";\n");
+
+		toWrite.add(getLicence());
+		toWrite.add("import java.util.Arrays;");
+		toWrite.add("import io.swagger.v3.oas.models.OpenAPI;");
+		toWrite.add("import io.swagger.v3.oas.models.info.Contact;");
+		toWrite.add("import io.swagger.v3.oas.models.info.Info;");
+		toWrite.add("import io.swagger.v3.oas.models.servers.Server;");
+		toWrite.add("import org.springframework.context.annotation.Bean;");
+		toWrite.add("import org.springframework.context.annotation.Configuration;");
+		toWrite.add("\r\n");
+		toWrite.add("@Configuration");
+		toWrite.add("public class SwaggerConfig {");
+
+		toWrite.add("@Bean");
+		toWrite.add("public OpenAPI openAPI() {");
+		toWrite.add("Server localServer = new Server();");
+		toWrite.add("localServer.setDescription(" + quotes + documentation.getServerDescription() + quotes + ");");
+		toWrite.add("localServer.setUrl(" + quotes + documentation.getServerUrl() + quotes + ");");
+//
+//													toWrite.add("Server testServer = new Server();
+//															toWrite.add("testServer.setDescription("test");
+//																	toWrite.add("testServer.setUrl("https://example.org");
+
+		toWrite.add("OpenAPI openAPI = new OpenAPI();");
+		toWrite.add("openAPI.info(new Info()");
+		toWrite.add(".title(" + quotes + documentation.getTitle() + quotes + ")");
+		toWrite.add(".description(");
+		toWrite.add(quotes + documentation.getDescription() + quotes
+				+ ")");
+		toWrite.add(".version(" + quotes + documentation.getVersion() + quotes + ")");
+		toWrite.add(".contact(new Contact().name(" + quotes + documentation.getContactName() + quotes + ").");
+		toWrite.add("url(" + quotes + documentation.getContactEmail() + quotes + ").email(" + quotes + documentation.getContactUrl()
+				+ quotes + ")));");
+		toWrite.add("openAPI.setServers(Arrays.asList(localServer));");
+		toWrite.add("\r\n");
+		toWrite.add("return openAPI;");
+		toWrite.add("}");
+
+		toWrite.add("}");
+		serialize.appendStringFromList(packageName, "SwaggerConfig", toWrite);
 
 	}
 

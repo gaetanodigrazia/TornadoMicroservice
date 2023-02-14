@@ -116,7 +116,7 @@ public class MultiCRUD {
 		public MultiCRUD build() throws IOException {
 			InitApi initApi = new InitApi();
 			initApi.setStringRootPackage(this.basePackage); 
-			initApi.initCrud(this.controllerAdvice);
+			initApi.initCrud(this.controllerAdvice, null);
 			return new MultiCRUD(this);
 		}
 	}

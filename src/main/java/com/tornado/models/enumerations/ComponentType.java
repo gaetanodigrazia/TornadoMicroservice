@@ -8,6 +8,8 @@ public enum ComponentType {
 	Exceptions,
 	Filter,
 	Service,
-	ServiceImpl
+	ServiceImpl,
+	Configuration,
+	Documentation
 }
 
