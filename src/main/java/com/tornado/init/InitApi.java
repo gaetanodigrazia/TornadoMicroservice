@@ -2,7 +2,13 @@ package com.tornado.init;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.sql.Date;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -20,8 +26,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.ser.std.ArraySerializerBase;
+import com.github.javafaker.Faker;
 import com.tornado.custom.StringUtils;
 import com.tornado.helper.file.Serialize;
+import com.tornado.models.Database;
 import com.tornado.models.Documentation;
 import com.tornado.models.enumerations.ComponentType;
 
@@ -47,7 +55,6 @@ public class InitApi {
 		this.initRepository(beanClass);
 		this.initExceptions(beanClass);
 		this.initDocumentation(beanClass, documentationConfig);
-//		this.initDatabase(beanClass);
 	}
 
 	public void initController(Class<?> beanClass) throws IOException {
@@ -71,9 +78,49 @@ public class InitApi {
 
 	}
 
-	public void initDatabase(Class<?> beanClass) throws IOException {
-		this.printExceptionClass(this.createPackage(ComponentType.Database), beanClass.getSimpleName(),
-				beanClass.getSimpleName() + ComponentType.Database);
+	public Object[] initDatabase(String rootPackage, Class<?> beanClass) throws IOException, ClassNotFoundException,
+			InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+		Faker faker = new Faker();
+		Class<?> clazz = Class.forName(rootPackage + ".beans." + beanClass.getSimpleName());
+		Constructor<?>[] constructors = clazz.getConstructors();
+		List<Class<?>> paramsType = Arrays.asList(constructors[0].getParameterTypes());
+		Object[] params = new Object[paramsType.size()];
+		for (int i = 0; i < paramsType.size(); i++) {
+			switch (paramsType.get(i).getSimpleName()) {
+			case "String":
+				params[i] = faker.regexify("[a-z1-9]{10}");
+				break;
+			case "Integer":
+			case "int":
+			case "Int":
+				params[i] = Integer.valueOf(faker.address().buildingNumber());
+				break;
+			case "Long":
+				params[i] = Long.valueOf(faker.address().buildingNumber());
+				break;
+			case "Float":
+			case "float":
+				params[i] = Float.valueOf(faker.address().buildingNumber());
+				break;
+			case "Double":
+			case "double":
+				params[i] = Double.valueOf(faker.address().buildingNumber());
+				break;
+			case "Date":
+				params[i] = new Date(System.currentTimeMillis());
+				break;
+			case "LocalDate":
+				params[i] = LocalDate.now();
+				break;
+			case "Boolean":
+			case "boolean":
+				params[i] = Integer.valueOf(faker.address().buildingNumber()) % 2 == 0 ? true : false;
+				break;
+			}
+		}
+		// SHOULD CALL THE SERVICE TO INSERT THE OBJECT
+//		Object element = constructors[0].newInstance(params);
+		return params;
 	}
 
 	public void initFilter(Class<?> beanClass) throws IOException {
@@ -92,7 +139,8 @@ public class InitApi {
 	}
 
 	public void initDocumentation(Class<?> beanClass, Documentation documentationConfig) throws IOException {
-		this.printDocumentation(this.createPackage(ComponentType.Configuration), beanClass.getSimpleName(), beanClass, documentationConfig);
+		this.printDocumentation(this.createPackage(ComponentType.Configuration), beanClass.getSimpleName(), beanClass,
+				documentationConfig);
 	}
 
 	public void printControllerAdvice(String packageName, String beanName, String className) throws IOException {
@@ -143,6 +191,9 @@ public class InitApi {
 		toWrite.add(
 				"import " + packageName.replace("src/main/java/", "").replace("/", ".").replace("controller", "beans")
 						+ "." + beanName + ";");
+		toWrite.add(
+				"import " + packageName.replace("src/main/java/", "").replace("/", ".").replace("controller", "service")
+						+ "." + beanName + "Service;");
 		toWrite.add("import "
 				+ packageName.replace("src/main/java/", "").replace("/", ".").replace("controller", "repository") + "."
 				+ beanName + "Repository;");
@@ -157,6 +208,8 @@ public class InitApi {
 		toWrite.add("@RestController");
 		toWrite.add("@RequestMapping(value = \"/" + beanName.toLowerCase() + "\")");
 		toWrite.add("public class " + beanName + "RestController {");
+		toWrite.add("@Autowired");
+		toWrite.add("private " + beanName + "Service "+beanName.toLowerCase()+"Service;");
 		toWrite.add("@Autowired");
 		toWrite.add("private " + beanName + "Repository repository;");
 		toWrite.add("@Autowired");
@@ -208,6 +261,12 @@ public class InitApi {
 		toWrite.add("@RequestParam(name = " + quotes + "value" + quotes + ") Object... params) {	");
 		toWrite.add(
 				"return (List<" + beanName + ">) " + beanName.toLowerCase() + "Filter.filter(searchMethod, params);");
+		toWrite.add("}");
+		toWrite.add("\n");
+		toWrite.add("\n");
+		toWrite.add("@GetMapping(value ="+quotes+"/fill"+quotes+")");
+		toWrite.add("public void fillDatabase(){");
+			toWrite.add(beanName.toLowerCase()+"Service.fillDatabase();");
 		toWrite.add("}");
 		toWrite.add("}");
 		serialize.appendStringFromList(packageName, className.replace("Controller", "RestController"), toWrite);
@@ -292,12 +351,12 @@ public class InitApi {
 				+ "." + beanName + ";");
 		toWrite.add("		/**\n" + "* The Interface " + beanName + "Service.\n" + "*/\n");
 		toWrite.add("public interface " + beanName + "Service<T> {");
-
+		toWrite.add("public void fillDatabase();");
 		toWrite.add("public T create(" + beanName + " element);\n");
 		toWrite.add("public List<" + beanName + "> getAll();\n");
 
 		for (int i = 0; i < allFields.length; i++) {
-			if (allFields[i].getName().equals("serialVersionUID")) {
+			if (allFields[i].getName().equals("serialVersionUID")|| allFields[i].getType().getName().equals("Logger")) {
 				continue;
 			}
 			toWrite.add("public List<" + beanName + "> getBy" + StringUtils.capitalize(allFields[i].getName()) + "("
@@ -309,6 +368,8 @@ public class InitApi {
 
 	public void printServiceImpl(String packageName, String beanName, String className, Class<?> clazz)
 			throws IOException {
+		char quotes = '"';
+
 		Field[] allFields;
 		allFields = printAllFields(clazz);
 		List<String> typesList = Arrays.asList(allFields).stream().map(x -> x.getType().getSimpleName())
@@ -326,7 +387,8 @@ public class InitApi {
 		if (typesList.stream().anyMatch(value -> value.equalsIgnoreCase("Date"))) {
 			toWrite.add("import java.util.Date;");
 		}
-
+		toWrite.add("import java.lang.reflect.InvocationTargetException;\r\n");
+		toWrite.add("import com.tornado.models.Database;\r\n");
 		toWrite.add("import java.util.stream.Collectors;");
 		toWrite.add("import org.slf4j.Logger;");
 		toWrite.add("import org.slf4j.LoggerFactory;");
@@ -371,6 +433,9 @@ public class InitApi {
 			if (allFields[i].getName().equals("serialVersionUID")) {
 				continue;
 			}
+			if(allFields[i].getType().getName().equals("Logger")) {
+				continue;
+			}
 			toWrite.add("@Override");
 			toWrite.add("public List<" + beanName + "> getBy" + StringUtils.capitalize(allFields[i].getName()) + "("
 					+ allFields[i].getType().getSimpleName() + " " + allFields[i].getName() + "){\n");
@@ -385,6 +450,39 @@ public class InitApi {
 			}
 			toWrite.add("}");
 		}
+		toWrite.add("");
+		toWrite.add("");
+
+		toWrite.add("@Override");
+		toWrite.add("public void fillDatabase(){");
+		toWrite.add("Database database = new Database();");
+		toWrite.add("for (int i = 0; i < 10; i++) {");
+		toWrite.add("Object[] params;");
+		toWrite.add("try {");
+		 toWrite.add("params = database.fillDatabaseForClass("+quotes+this.stringRootPackage+quotes+", "+beanName+".class);");
+		toWrite.add(beanName+" " +beanName.toLowerCase()+ " = ("+beanName+")"+ beanName+".class.getConstructors()[0].newInstance(params);");
+		toWrite.add("this.create(" +beanName.toLowerCase()+ ");");
+		toWrite.add("} catch (ClassNotFoundException e) {");
+		toWrite.add("// TODO Auto-generated catch block");
+		toWrite.add("e.printStackTrace();");
+		toWrite.add("} catch (InstantiationException e) {");
+		toWrite.add("// TODO Auto-generated catch block");
+		toWrite.add("e.printStackTrace();");
+		toWrite.add("} catch (IllegalAccessException e) {");
+		toWrite.add("// TODO Auto-generated catch block");
+		toWrite.add("e.printStackTrace();");
+		toWrite.add("} catch (IllegalArgumentException e) {");
+		toWrite.add("// TODO Auto-generated catch block");
+		toWrite.add("e.printStackTrace();");
+		toWrite.add("} catch (InvocationTargetException e) {");
+		toWrite.add("// TODO Auto-generated catch block");
+		toWrite.add("e.printStackTrace();");
+		toWrite.add("} catch (SecurityException e) {");
+		toWrite.add("// TODO Auto-generated catch block");
+		toWrite.add("e.printStackTrace();");
+		toWrite.add("}");
+		toWrite.add("}");
+		toWrite.add("}");
 		toWrite.add("");
 		toWrite.add("");
 		toWrite.add("}");
@@ -415,7 +513,8 @@ public class InitApi {
 
 	}
 
-	public void printDocumentation(String packageName, String beanName, Class<?> clazz, Documentation documentation) throws IOException {
+	public void printDocumentation(String packageName, String beanName, Class<?> clazz, Documentation documentation)
+			throws IOException {
 		List<String> toWrite = new ArrayList<String>();
 		char quotes = '"';
 		toWrite.add("package " + packageName.replace("src/main/java/", "").replace("/", ".") + ";\n");
@@ -446,12 +545,11 @@ public class InitApi {
 		toWrite.add("openAPI.info(new Info()");
 		toWrite.add(".title(" + quotes + documentation.getTitle() + quotes + ")");
 		toWrite.add(".description(");
-		toWrite.add(quotes + documentation.getDescription() + quotes
-				+ ")");
+		toWrite.add(quotes + documentation.getDescription() + quotes + ")");
 		toWrite.add(".version(" + quotes + documentation.getVersion() + quotes + ")");
 		toWrite.add(".contact(new Contact().name(" + quotes + documentation.getContactName() + quotes + ").");
-		toWrite.add("url(" + quotes + documentation.getContactEmail() + quotes + ").email(" + quotes + documentation.getContactUrl()
-				+ quotes + ")));");
+		toWrite.add("url(" + quotes + documentation.getContactEmail() + quotes + ").email(" + quotes
+				+ documentation.getContactUrl() + quotes + ")));");
 		toWrite.add("openAPI.setServers(Arrays.asList(localServer));");
 		toWrite.add("\r\n");
 		toWrite.add("return openAPI;");
