@@ -8,61 +8,61 @@ public class Microservice {
 	  private MySql mysql;
 	  private PostgreSql postgresql;
 	  private MongoDb mongodb;
-	  private Boolean wantToFillDatabase;
 	  private Docker docker;
+	  private HttpRequestInterceptor httpRequestInterceptor;
 	  
 	  public Microservice() {
 		  
 	  }
 	  
-	  private Microservice(Builder builder) {
+	  private Microservice(MicroserviceBuilder builder) {
 	    this.keycloak = builder.keycloak;
 	    this.mysql = builder.mysql;
 	    this.postgresql = builder.postgresql;
 	    this.mongodb = builder.mongodb;
-	    this.wantToFillDatabase = builder.wantToFillDatabase;
 	    this.docker = builder.docker;
+	    this.httpRequestInterceptor = builder.httpRequestInterceptor;
 	  }
 
-	  public static Builder builder() {
-	    return new Builder();
+	  public static MicroserviceBuilder builder() {
+	    return new MicroserviceBuilder();
 	  }
 
-	  public static final class Builder {
+	  public static final class MicroserviceBuilder {
 		  private Keycloak keycloak;
 		  private MySql mysql;
 		  private PostgreSql postgresql;
 		  private MongoDb mongodb;
-		  private Boolean wantToFillDatabase;
 		  private Docker docker;
-			  
-			  public Builder() {
+		  private HttpRequestInterceptor httpRequestInterceptor;
+
+			  public MicroserviceBuilder() {
 	    }
 
-	    public Builder withKeycloak(Keycloak keycloak) {
+	    public MicroserviceBuilder withKeycloak(Keycloak keycloak) {
 	      this.keycloak = keycloak;
 	      return this;
 	    }
 
-	    public Builder withMySql(MySql mysql) {
+	    public MicroserviceBuilder withMySql(MySql mysql) {
 	      this.mysql = mysql;
 	      return this;
 	    }
 
-	    public Builder withPostgresql(PostgreSql postgresql) {
+	    public MicroserviceBuilder withPostgresql(PostgreSql postgresql) {
 	      this.postgresql = postgresql;
 	      return this;
 	    }
 
-	    public Builder withMongodb(MongoDb mongodb) {
+	    public MicroserviceBuilder withMongodb(MongoDb mongodb) {
 		      this.mongodb = mongodb;
 		      return this;
 		    }
-	    public Builder wantToFillDatabase(Boolean wantToFillDatabase) {
-	    	this.wantToFillDatabase = wantToFillDatabase;
+	    public MicroserviceBuilder withHttpRequestInterceptor() {
+	    	this.httpRequestInterceptor = new HttpRequestInterceptor(this.getClass());
 	    	return this;
 	    }
-	    public Builder withDocker(Docker docker) {
+	    public MicroserviceBuilder withDocker(Docker docker) {
 	    	this.docker = docker;
 	    	return this;
 	    }
@@ -82,13 +82,6 @@ public class Microservice {
 
 		public MongoDb getMongodb() {
 			return mongodb;
-		}
-
-		/**
-		 * @return the databaseFiller
-		 */
-		public Boolean getDatabaseFiller() {
-			return wantToFillDatabase;
 		}
 
 		/**

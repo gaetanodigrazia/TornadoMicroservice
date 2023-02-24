@@ -1,7 +1,6 @@
 package com.tornado.models;
 
 import com.tornado.init.InitApi;
-import com.tornado.models.Microservice.Builder;
 
 import java.io.IOException;
 import org.springframework.stereotype.Component;
@@ -17,7 +16,6 @@ public class CRUD {
 	private Class<?> exceptions;
 	private Class<?> controllerAdvice;
 	private Documentation documentation;
-	private Boolean wantToFillDatabase;
 
 
 
@@ -31,7 +29,6 @@ public class CRUD {
 		this.exceptions = crudBuilder.exceptions;
 		this.controllerAdvice = crudBuilder.controllerAdvice;
 		this.documentation = crudBuilder.documentation;
-	    this.wantToFillDatabase = crudBuilder.wantToFillDatabase;
 
 	}
 
@@ -79,12 +76,7 @@ public class CRUD {
 	public Documentation getDocumentation() {
 		return documentation;
 	}
-	/**
-	 * @return the databaseFiller
-	 */
-	public Boolean getDatabaseFiller() {
-		return wantToFillDatabase;
-	}
+
 
 	public static class CRUDBuilder {
 		private String basePackage;
@@ -96,7 +88,6 @@ public class CRUD {
 		private Class<?> exceptions;
 		private Class<?> controllerAdvice;
 		private Documentation documentation;
-		private Boolean wantToFillDatabase;
 
 		public CRUDBuilder() {
 
@@ -139,25 +130,10 @@ public class CRUD {
 			this.documentation = documentationConfig;
 			return this;
 		}
-	    public CRUDBuilder wantToFillDatabase(Boolean wantToFillDatabase, Class<?> beanClass) {
-	    	this.wantToFillDatabase = wantToFillDatabase;
-	    	return this;
-	    }
 		public CRUD build() throws IOException {
 			InitApi initApi = new InitApi();
 			initApi.setStringRootPackage(this.basePackage); 
 			initApi.initCrud(this.controllerAdvice, this.documentation);
-			if(this.wantToFillDatabase) {
-//				try {
-//					initApi.initDatabase(this.controllerAdvice);
-//				} catch (ClassNotFoundException e) {
-//					// TODO Auto-generated catch block
-//					e.printStackTrace();
-//				} catch (IOException e) {
-//					// TODO Auto-generated catch block
-//					e.printStackTrace();
-//				}
-			}
 			return new CRUD(this);
 		}
 	}

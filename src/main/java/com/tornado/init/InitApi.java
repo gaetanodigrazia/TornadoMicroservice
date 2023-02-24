@@ -29,7 +29,6 @@ import com.fasterxml.jackson.databind.ser.std.ArraySerializerBase;
 import com.github.javafaker.Faker;
 import com.tornado.custom.StringUtils;
 import com.tornado.helper.file.Serialize;
-import com.tornado.models.Database;
 import com.tornado.models.Documentation;
 import com.tornado.models.enumerations.ComponentType;
 
@@ -49,7 +48,6 @@ public class InitApi {
 	public void initCrud(Class<?> beanClass, Documentation documentationConfig) throws IOException {
 		this.initService(beanClass);
 		this.initServiceImpl(beanClass);
-		this.initFilter(beanClass);
 		this.initController(beanClass);
 		this.initControllerAdvice(beanClass);
 		this.initRepository(beanClass);
@@ -123,10 +121,7 @@ public class InitApi {
 		return params;
 	}
 
-	public void initFilter(Class<?> beanClass) throws IOException {
-		this.printFilter(this.createPackage(ComponentType.Filter), beanClass.getSimpleName(),
-				beanClass.getSimpleName() + ComponentType.Filter);
-	}
+
 
 	public void initService(Class<?> beanClass) throws IOException {
 		this.printService(this.createPackage(ComponentType.Service), beanClass.getSimpleName(),
@@ -176,6 +171,9 @@ public class InitApi {
 
 		toWrite.add("package " + packageName.replace("src/main/java/", "").replace("/", ".") + ";\n");
 		toWrite.add("import java.util.List;");
+		toWrite.add("import io.swagger.v3.oas.annotations.Operation;");
+		toWrite.add("import io.swagger.v3.oas.annotations.Parameter;");
+		toWrite.add("import io.swagger.v3.oas.annotations.enums.ParameterIn;");
 		toWrite.add("import org.springframework.beans.factory.annotation.Autowired;");
 		toWrite.add("import org.springframework.web.bind.annotation.CrossOrigin;");
 		toWrite.add("import org.springframework.web.bind.annotation.DeleteMapping;");
@@ -200,20 +198,15 @@ public class InitApi {
 		toWrite.add("import "
 				+ packageName.replace("src/main/java/", "").replace("/", ".").replace("controller", "exceptions") + "."
 				+ beanName + "NotFoundException;");
-		toWrite.add(
-				"import " + packageName.replace("src/main/java/", "").replace("/", ".").replace("controller", "filter")
-						+ "." + beanName + "Filter;");
 
 		toWrite.add("@CrossOrigin(origins = \"*\")");
 		toWrite.add("@RestController");
 		toWrite.add("@RequestMapping(value = \"/" + beanName.toLowerCase() + "\")");
 		toWrite.add("public class " + beanName + "RestController {");
 		toWrite.add("@Autowired");
-		toWrite.add("private " + beanName + "Service "+beanName.toLowerCase()+"Service;");
+		toWrite.add("private " + beanName + "Service " + beanName.toLowerCase() + "Service;");
 		toWrite.add("@Autowired");
 		toWrite.add("private " + beanName + "Repository repository;");
-		toWrite.add("@Autowired");
-		toWrite.add("private " + beanName + "Filter " + beanName.toLowerCase() + "Filter;");
 		toWrite.add(beanName + "RestController() {");
 		toWrite.add("}");
 
@@ -227,6 +220,10 @@ public class InitApi {
 		toWrite.add("return (" + beanName + ") repository.save(new" + beanName + ");");
 		toWrite.add("}");
 
+		toWrite.add("@Operation(operationId = " + quotes + "findAll" + quotes + ", description = " + quotes
+				+ "Retrieve a list of " + quotes + ")");
+		toWrite.add("@Parameter(required = true, name = " + quotes + "id" + quotes + ", description = " + quotes
+				+ "The id of the element to get" + quotes + ", in = ParameterIn.PATH)");
 		toWrite.add("@GetMapping(" + quotes + "/{id}" + quotes + ")");
 		toWrite.add(beanName + " get" + beanName + "(@PathVariable Long id) throws Throwable {");
 
@@ -254,20 +251,8 @@ public class InitApi {
 		toWrite.add("repository.deleteById(id);");
 		toWrite.add("}");
 
-		toWrite.add("@GetMapping(value = " + quotes + "/search" + quotes + ", produces = " + quotes + "application/json"
-				+ quotes + ")");
-		toWrite.add("public List<" + beanName + "> search" + beanName + "(@RequestParam(name = " + quotes
-				+ "searchMethod" + quotes + ") String searchMethod,");
-		toWrite.add("@RequestParam(name = " + quotes + "value" + quotes + ") Object... params) {	");
-		toWrite.add(
-				"return (List<" + beanName + ">) " + beanName.toLowerCase() + "Filter.filter(searchMethod, params);");
-		toWrite.add("}");
 		toWrite.add("\n");
 		toWrite.add("\n");
-		toWrite.add("@GetMapping(value ="+quotes+"/fill"+quotes+")");
-		toWrite.add("public void fillDatabase(){");
-			toWrite.add(beanName.toLowerCase()+"Service.fillDatabase();");
-		toWrite.add("}");
 		toWrite.add("}");
 		serialize.appendStringFromList(packageName, className.replace("Controller", "RestController"), toWrite);
 	}
@@ -356,7 +341,8 @@ public class InitApi {
 		toWrite.add("public List<" + beanName + "> getAll();\n");
 
 		for (int i = 0; i < allFields.length; i++) {
-			if (allFields[i].getName().equals("serialVersionUID")|| allFields[i].getType().getName().equals("Logger")) {
+			if (allFields[i].getName().equals("serialVersionUID")
+					|| allFields[i].getType().getName().equals("Logger")) {
 				continue;
 			}
 			toWrite.add("public List<" + beanName + "> getBy" + StringUtils.capitalize(allFields[i].getName()) + "("
@@ -433,20 +419,24 @@ public class InitApi {
 			if (allFields[i].getName().equals("serialVersionUID")) {
 				continue;
 			}
-			if(allFields[i].getType().getName().equals("Logger")) {
+			if (allFields[i].getType().getName().equals("Logger")) {
 				continue;
 			}
 			toWrite.add("@Override");
 			toWrite.add("public List<" + beanName + "> getBy" + StringUtils.capitalize(allFields[i].getName()) + "("
 					+ allFields[i].getType().getSimpleName() + " " + allFields[i].getName() + "){\n");
-			if (allFields[i].getType().getSimpleName().equals("String")) {
+			switch (allFields[i].getType().getSimpleName()) {
+			case "String":
+			case "Long":
 				toWrite.add("return " + beanName.toLowerCase() + "Repo.findAll().stream().filter(x -> x.get"
 						+ StringUtils.capitalize(allFields[i].getName()) + "().equals(" + allFields[i].getName()
 						+ ")).collect(Collectors.toList());");
-			} else {
+				break;
+			default:
 				toWrite.add("return " + beanName.toLowerCase() + "Repo.findAll().stream().filter(x -> x.get"
 						+ StringUtils.capitalize(allFields[i].getName()) + "() == " + allFields[i].getName()
 						+ ").collect(Collectors.toList());");
+				break;
 			}
 			toWrite.add("}");
 		}
@@ -459,9 +449,11 @@ public class InitApi {
 		toWrite.add("for (int i = 0; i < 10; i++) {");
 		toWrite.add("Object[] params;");
 		toWrite.add("try {");
-		 toWrite.add("params = database.fillDatabaseForClass("+quotes+this.stringRootPackage+quotes+", "+beanName+".class);");
-		toWrite.add(beanName+" " +beanName.toLowerCase()+ " = ("+beanName+")"+ beanName+".class.getConstructors()[0].newInstance(params);");
-		toWrite.add("this.create(" +beanName.toLowerCase()+ ");");
+		toWrite.add("params = database.fillDatabaseForClass(" + quotes + this.stringRootPackage + quotes + ", "
+				+ beanName + ".class);");
+		toWrite.add(beanName + " " + beanName.toLowerCase() + " = (" + beanName + ")" + beanName
+				+ ".class.getConstructors()[0].newInstance(params);");
+		toWrite.add("this.create(" + beanName.toLowerCase() + ");");
 		toWrite.add("} catch (ClassNotFoundException e) {");
 		toWrite.add("// TODO Auto-generated catch block");
 		toWrite.add("e.printStackTrace();");
@@ -490,28 +482,6 @@ public class InitApi {
 		serialize.appendStringFromList(packageName, className, toWrite);
 	}
 
-	public void printFilter(String packageName, String beanName, String className) throws IOException {
-		List<String> toWrite = new ArrayList<String>();
-		toWrite.add(getLicence());
-
-		toWrite.add("package " + packageName.replace("src/main/java/", "").replace("/", ".") + ";\n");
-
-		toWrite.add("import org.springframework.stereotype.Component;");
-		toWrite.add("import com.tornado.filter.common.Filter;");
-		toWrite.add("import " + packageName.replace("src/main/java/", "").replace("/", ".").replace("filter",
-				"service.impl." + beanName + "ServiceImpl;"));
-
-		toWrite.add("@Component");
-		toWrite.add("public class " + beanName + "Filter extends Filter {");
-
-		toWrite.add("public " + beanName + "Filter() throws NoSuchMethodException, SecurityException {");
-		toWrite.add("super.setInjectedClass(" + beanName + "ServiceImpl.class);");
-		toWrite.add("super.initCases();");
-		toWrite.add("}");
-		toWrite.add("}");
-		serialize.appendStringFromList(packageName, className, toWrite);
-
-	}
 
 	public void printDocumentation(String packageName, String beanName, Class<?> clazz, Documentation documentation)
 			throws IOException {
